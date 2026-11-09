@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +6,9 @@
 <title>Для тебя ❤️</title>
 
 <style>
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 :root {
   --bg: #fff0ed;
@@ -220,10 +222,10 @@ h1 {
   touch-action: manipulation;
   transition:
     left 1s cubic-bezier(.2,.8,.2,1),
-    top
+    to
 
 
-1s cubic-bezier(.2,.8,.2,1),
+p 1s cubic-bezier(.2,.8,.2,1),
     transform .3s;
 }
 
@@ -283,7 +285,7 @@ h1 {
   opacity: 1;
 }
 
-/* НИЖНЯЯ ПОДСКАЗКА */
+/* ПОДСКАЗКА */
 
 .hint {
   position: absolute;
@@ -316,6 +318,8 @@ h1 {
   }
 }
 
+/* МАЛЕНЬКИЕ ЭКРАНЫ */
+
 max-height: 570px {
   .envelope {
     top: 54%;
@@ -343,26 +347,20 @@ max-height: 570px {
 </div>
 
 <div class="envelope" id="envelope">
-
   <div class="env-back"></div>
 
   <div class="letter" id="letter">
-
     <div class="letter-title">
       Небольшое послание
     </div>
 
     <div class="letter-text" id="letterText"></div>
-
     <div class="letter-sign" id="letterSign"></div>
-
   </div>
 
   <div class="env-front"></div>
   <div class="env-flap"></div>
-
   <div class="seal">♥</div>
-
 </div>
 
 <!-- ГУСЬ -->
@@ -422,12 +420,14 @@ max-height: 570px {
 
 <script>
 
-// ======================================
-// ПИСЬМО
-// ======
+/* =====================================
+   ПИСЬМО
+===================================== */
+
+co
 
 
-ext = `
+nst letterText = `
 Пускай сегодня небо хмурит брови,
 И пусть не удается всё с утра.
 Ты знаешь, <em>я всегда прийти готовый</em>,
@@ -456,9 +456,9 @@ ext = `
 
 const signature = "4uk4a ❤️";
 
-// ======================================
-// МЕХАНИКА
-// ======================================
+/* =====================================
+   ЭЛЕМЕНТЫ И ПЕРЕМЕННЫЕ
+===================================== */
 
 const goose = document.getElementById('goose');
 const gooseMessage = document.getElementById('gooseMessage');
@@ -473,6 +473,10 @@ let hits = 0;
 let opened = false;
 let moving = false;
 
+/* =====================================
+   РЕПЛИКИ ГУСЯ
+===================================== */
+
 const goosePhrases = [
   "ГА! Не трогать!",
   "Отойди от письма!",
@@ -481,9 +485,9 @@ const goosePhrases = [
   "Я тут главный!"
 ];
 
-// ======================================
-// ПЕРЕМЕЩЕНИЕ ГУСЯ
-// ======================================
+/* =====================================
+   ПЕРЕМЕЩЕНИЕ ГУСЯ
+===================================== */
 
 function moveGoose() {
   if (opened || moving) return;
@@ -509,18 +513,22 @@ function moveGoose() {
   }, 1050);
 }
 
-// ======================================
-// РЕАКЦИИ ГУСЯ
-// ======================================
+/* =====================================
+   СООБЩЕНИЯ ГУСЯ
+===================================== */
 
-function showGooseMessage(text) {
-  gooseMessage.textContent = text;
+function showGooseMessage(message) {
+  gooseMessage.textContent = message;
   gooseMessage.classList.add('show');
 
   setTimeout(() => {
     gooseMessage.classList.remove('show');
   }, 1300);
 }
+
+/* =====================================
+   НАЖАТИЯ НА ГУСЯ
+===================================== */
 
 function gooseTap(event) {
   event.preventDefault();
@@ -553,9 +561,9 @@ function gooseTap(event) {
   }
 }
 
-// ======================================
-// ГУСЬ ОТКРЫВАЕТ КОНВЕРТ
-// ======================================
+/* =====================================
+   ГУСЬ ПОДХОДИТ К КОНВЕРТУ
+===================================== */
 
 function openByGoose() {
 
@@ -581,9 +589,9 @@ function openByGoose() {
   }, 1100);
 }
 
-// ======================================
-// ОТКРЫТИЕ ПИСЬМА
-// ======================================
+/* =====================================
+   ОТКРЫТИЕ КОНВЕРТА
+===================================== */
 
 function openEnvelope() {
 
@@ -594,7 +602,10 @@ function openEnvelope() {
   envelope.classList.add('open');
   letter.classList.add('open');
 
-  counter.textContent = "Письмо доставлено!";
+  counter.textContent = "Письмо доставлено!"
+
+
+;
   hint.textContent = "Гусь выполнил свою миссию 🪿";
 
   createParticles();
@@ -602,13 +613,10 @@ function openEnvelope() {
   setTimeout(typeLetter, 1200);
 }
 
-// ======================================
-// ПЕЧАТЬ ТЕКСТА С СОХРАНЕНИЕМ
-// ЖИРНОГО ШРИФТА И КУРСИВА
-// ===
-
-
-===================================
+/* =====================================
+   ПЕЧАТЬ ПИСЬМА
+   СОХРАНЯЕТ ЖИРНЫЙ И КУРСИВ
+===================================== */
 
 function typeLetter() {
 
@@ -629,9 +637,7 @@ function typeLetter() {
   let node;
 
   while (node = walker.nextNode()) {
-
     nodes.push([node, node.textContent]);
-
     node.textContent = "";
   }
 
@@ -643,26 +649,20 @@ function typeLetter() {
     if (nodeIndex >= nodes.length) {
 
       setTimeout(() => {
-
         letterSign.textContent = signature;
-
         createParticles();
-
       }, 500);
 
       return;
     }
 
-    const [currentNode, originalText] =
-      nodes[nodeIndex];
+    const [currentNode, originalText] = nodes[nodeIndex];
 
-    currentNode.textContent +=
-      originalText[charIndex];
+    currentNode.textContent += originalText[charIndex];
 
     charIndex++;
 
     if (charIndex >= originalText.length) {
-
       nodeIndex++;
       charIndex = 0;
     }
@@ -675,9 +675,9 @@ function typeLetter() {
   typeNext();
 }
 
-// ======================================
-// СЕРДЕЧКИ И ЧАСТИЦЫ
-// ======================================
+/* =====================================
+   СЕРДЕЧКИ И ЧАСТИЦЫ
+===================================== */
 
 function createParticles() {
 
@@ -716,13 +716,13 @@ function createParticles() {
   }
 }
 
-// ======================================
-// ЗАПУСК
-// ======================================
+/* =====================================
+   ЗАПУСК
+===================================== */
 
 goose.addEventListener('pointerdown', gooseTap);
 
-// Гусь иногда самостоятельно гуляет.
+/* Гусь самостоятельно гуляет */
 
 setInterval(() => {
 
@@ -731,6 +731,8 @@ setInterval(() => {
   }
 
 }, 3500);
+
+/* Подстраиваем положение при изменении экрана */
 
 window.addEventListener('resize', () => {
 
