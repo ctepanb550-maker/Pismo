@@ -36,6 +36,7 @@ h1 {
   position: absolute;
   top: 6%;
   width: 100%;
+  margin: 0;
   text-align: center;
   font-size: clamp(27px, 7vw, 39px);
   font-weight: normal;
@@ -62,6 +63,21 @@ h1 {
   font-family: system-ui, sans-serif;
   font-size: 13px;
   color: #b77d84;
+}
+
+.subtitle,
+.counter,
+.hint {
+  transition: opacity .9s ease;
+}
+
+.fade {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.removed {
+  display: none !important;
 }
 
 /* КОНВЕРТ */
@@ -209,9 +225,18 @@ h1 {
   transform: translate(-50%, -50%) scale(0);
 }
 
+/* Конверт исчезает, остаётся только письмо */
+
+.envelope.gone > :not(.letter) {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .9s ease;
+}
+
 /* ГУСЬ */
 
 .goose {
+  --flip: 1;
   position: absolute;
   width: 125px;
   height: 115px;
@@ -222,11 +247,14 @@ h1 {
   touch-action: manipulation;
   transition:
     left 1s cubic-bezier(.2,.8,.2,1),
-    to
+    top 1s cubic-bezier(.2,.8,.2,1),
+    transform .3s,
+    opacity .9s ease;
+}
 
-
-p 1s cubic-bezier(.2,.8,.2,1),
-    transform .3s;
+.goose.gone {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .goose svg {
@@ -267,7 +295,8 @@ p 1s cubic-bezier(.2,.8,.2,1),
   position: absolute;
   bottom: 100%;
   left: 50%;
-  transform: translateX(-50%);
+  /* scaleX(var(--flip)) компенсирует зеркальный разворот гуся, чтобы текст не переворачивался */
+  transform: translateX(-50%) scaleX(var(--flip));
   white-space: nowrap;
   font-family: system-ui, sans-serif;
   font-size: 13px;
@@ -283,6 +312,58 @@ p 1s cubic-bezier(.2,.8,.2,1),
 
 .goose-message.show {
   opacity: 1;
+}
+
+/* КЛЮЧ */
+
+.key {
+  position: absolute;
+  width: 46px;
+  height: 46px;
+  left: 0;
+  top: 0;
+  z-index: 11;
+  opacity: 0;
+  transform: scale(.2);
+  pointer-events: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    left .9s cubic-bezier(.3,.7,.2,1),
+    top .9s cubic-bezier(.3,.7,.2,1),
+    transform .5s cubic-bezier(.3,1.6,.5,1),
+    opacity .5s ease;
+}
+
+.key.show {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.key.gone {
+  opacity: 0;
+  transform: scale(.3);
+  pointer-events: none;
+}
+
+.key svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 0 7px #f5d98bcc);
+  animation: keyPulse .8s infinite alternate ease-in-out;
+}
+
+.key.used svg {
+  animation: none;
+  transform: rotate(90deg);
+  transition: transform .5s ease;
+}
+
+@keyframes keyPulse {
+  from { transform: scale(1) rotate(-8deg); }
+  to { transform: scale(1.18) rotate(8deg); }
 }
 
 /* ПОДСКАЗКА */
@@ -320,7 +401,7 @@ p 1s cubic-bezier(.2,.8,.2,1),
 
 /* МАЛЕНЬКИЕ ЭКРАНЫ */
 
-max-height: 570px {
+@media (max-height: 570px) {
   .envelope {
     top: 54%;
     transform: translate(-50%, -50%) scale(.8);
@@ -338,7 +419,7 @@ max-height: 570px {
 
 <h1>Для тебя ❤️</h1>
 
-<div class="subtitle">
+<div class="subtitle" id="subtitle">
   Кажется, тут кое-кто охраняет письмо...
 </div>
 
@@ -360,7 +441,7 @@ max-height: 570px {
 
   <div class="env-front"></div>
   <div class="env-flap"></div>
-  <div class="seal">♥</div>
+  <div class="seal" id="seal">♥</div>
 </div>
 
 <!-- ГУСЬ -->
@@ -414,6 +495,18 @@ max-height: 570px {
   </svg>
 </div>
 
+<!-- КЛЮЧ -->
+
+<div class="key" id="key">
+  <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <g stroke="#b77d31" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M28 28 L54 54 M44 44 L51 37 M50 50 L57 43" fill="none"/>
+      <circle cx="20" cy="20" r="12" fill="#f5d98b"/>
+      <circle cx="20" cy="20" r="4" fill="#fffaf0" stroke-width="2"/>
+    </g>
+  </svg>
+</div>
+
 <div class="hint" id="hint">
   Поймай гуся. Он явно что-то замышляет 🪿
 </div>
@@ -424,13 +517,9 @@ max-height: 570px {
    ПИСЬМО
 ===================================== */
 
-co
-
-
-nst letterText = `
-Пускай сегодня небо хмурит брови,
+const letterText = `Пускай сегодня небо хмурит брови,
 И пусть не удается всё с утра.
-Ты знаешь, <em>я всегда прийти готовый</em>,
+Ты знаешь, <em>я всегда прийти готов</em>,
 Когда тебе хоть капельку пора.
 
 Пора тепла, заботы и покоя,
@@ -441,7 +530,7 @@ nst letterText = `
 Не думай, что должна быть идеальной,
 Не прячь свою усталость за улыбкой.
 <em>Ты можешь быть смешной и нереальной,</em>
-И можешь ошибаться — это пылью.
+И можешь ошибаться — это пыль.
 
 Сотрется всё: обиды и тревоги,
 Останется лишь то, что между нами.
@@ -451,8 +540,7 @@ nst letterText = `
 А если снова станет очень сложно,
 <strong>Открой конверт</strong>, где спрятан этот стих.
 Я рядом. И теперь это надежно.
-<strong>Я очень сильно ценю тебя и нас двоих.</strong>
-`;
+<strong>Я очень сильно ценю тебя и нас двоих.</strong>`;
 
 const signature = "4uk4a ❤️";
 
@@ -467,126 +555,191 @@ const letter = document.getElementById('letter');
 const letterTextElement = document.getElementById('letterText');
 const letterSign = document.getElementById('letterSign');
 const counter = document.getElementById('counter');
+const subtitle = document.getElementById('subtitle');
 const hint = document.getElementById('hint');
+const seal = document.getElementById('seal');
+const key = document.getElementById('key');
 
-let hits = 0;
-let opened = false;
-let moving = false;
+const MAX_DODGES = 3;
+
+let dodges = 0;          // сколько раз гусь убежал
+let phase = 'chase';     // chase -> key -> unlocking -> opened
+let cooling = false;     // гусь сейчас бежит, новые тычки не считаются
 
 /* =====================================
    РЕПЛИКИ ГУСЯ
 ===================================== */
 
-const goosePhrases = [
-  "ГА! Не трогать!",
-  "Отойди от письма!",
-  "Ну всё, достал!",
-  "Кря... то есть ГА!",
-  "Я тут главный!"
+const dodgePhrases = [
+  "Не догонишь! ГА!",
+  "Мимо! ГА-ГА!",
+  "Фух... ну ты настойчивый!"
 ];
 
 /* =====================================
-   ПЕРЕМЕЩЕНИЕ ГУСЯ
+   РАЗВОРОТ ГУСЯ
 ===================================== */
 
-function moveGoose() {
-  if (opened || moving) return;
-
-  const maxX = Math.max(10, window.innerWidth - 140);
-  const maxY = Math.max(150, window.innerHeight - 150);
-
-  const x = 10 + Math.random() * (maxX - 10);
-  const y = 120 + Math.random() * (maxY - 120);
-
-  goose.classList.add('running');
-
-  const currentX = parseFloat(goose.style.left || 10);
-
-  goose.style.transform =
-    x < currentX ? 'scaleX(-1)' : 'scaleX(1)';
-
-  goose.style.left = x + 'px';
-  goose.style.top = y + 'px';
-
-  setTimeout(() => {
-    goose.classList.remove('running');
-  }, 1050);
+function setFlip(flipped) {
+  goose.style.transform = flipped ? 'scaleX(-1)' : 'scaleX(1)';
+  goose.style.setProperty('--flip', flipped ? -1 : 1);
 }
 
 /* =====================================
    СООБЩЕНИЯ ГУСЯ
 ===================================== */
 
-function showGooseMessage(message) {
+let messageTimer = null;
+
+function showGooseMessage(message, duration = 1300) {
   gooseMessage.textContent = message;
   gooseMessage.classList.add('show');
 
-  setTimeout(() => {
+  clearTimeout(messageTimer);
+  messageTimer = setTimeout(() => {
     gooseMessage.classList.remove('show');
-  }, 1300);
+  }, duration);
 }
 
 /* =====================================
-   НАЖАТИЯ НА ГУСЯ
+   ПЕРЕМЕЩЕНИЕ ГУСЯ
 ===================================== */
 
-function gooseTap(event) {
-  event.preventDefault();
+function randomSpot(minDistance = 0) {
+  const maxX = Math.max(10, window.innerWidth - 140);
+  const maxY = Math.max(150, window.innerHeight - 150);
 
-  if (opened || moving) return;
+  const curX = parseFloat(goose.style.left || 10);
+  const curY = parseFloat(goose.style.top || window.innerHeight * 0.69);
 
-  hits++;
+  let x, y;
 
-  showGooseMessage(
-    goosePhrases[Math.min(hits - 1, goosePhrases.length - 1)]
-  );
+  for (let i = 0; i < 12; i++) {
+    x = 10 + Math.random() * (maxX - 10);
+    y = 120 + Math.random() * (maxY - 120);
 
-  if (hits < 3) {
-
-    counter.textContent =
-      `Попытки поймать гуся: ${hits} из 3`;
-
-    moveGoose();
-
-  } else {
-
-    counter.textContent =
-      "Гусь принял важное решение...";
-
-    hint.textContent =
-      "Кажется, он всё-таки согласился ❤️";
-
-    moving = true;
-    openByGoose();
+    if (Math.hypot(x - curX, y - curY) >= minDistance) break;
   }
+
+  return { x, y, curX };
 }
 
-/* =====================================
-   ГУСЬ ПОДХОДИТ К КОНВЕРТУ
-===================================== */
-
-function openByGoose() {
+function moveGoose(minDistance = 0, onArrive) {
+  const { x, y, curX } = randomSpot(minDistance);
 
   goose.classList.add('running');
 
-  const x = window.innerWidth / 2 - 65;
-  const y = window.innerHeight / 2 + 85;
+  setFlip(x < curX);
 
-  goose.style.transform = 'scaleX(1)';
   goose.style.left = x + 'px';
   goose.style.top = y + 'px';
 
   setTimeout(() => {
-
     goose.classList.remove('running');
+    if (onArrive) onArrive(x, y);
+  }, 1050);
+}
 
-    showGooseMessage(
-      "Ладно... держи письмо ❤️"
-    );
+/* =====================================
+   ГУСЬ УБЕГАЕТ ОТ ТЫЧКА
+===================================== */
 
-    setTimeout(openEnvelope, 700);
+function dodge() {
+  if (phase !== 'chase' || cooling) return;
 
-  }, 1100);
+  cooling = true;
+  dodges++;
+
+  showGooseMessage(dodgePhrases[dodges - 1]);
+
+  counter.textContent =
+    `Гусь убежал: ${dodges} из ${MAX_DODGES}`;
+
+  moveGoose(180, (x, y) => {
+    cooling = false;
+
+    if (dodges >= MAX_DODGES) {
+      giveKey(x, y);
+    }
+  });
+}
+
+function onGoosePointerDown(event) {
+  event.preventDefault();
+  dodge();
+}
+
+/* Мышь: гусь убегает, как только курсор подходит близко */
+
+document.addEventListener('pointermove', (event) => {
+  if (event.pointerType !== 'mouse') return;
+  if (phase !== 'chase' || cooling) return;
+
+  const r = goose.getBoundingClientRect();
+  const cx = r.left + r.width / 2;
+  const cy = r.top + r.height / 2;
+
+  if (Math.hypot(event.clientX - cx, event.clientY - cy) < 85) {
+    dodge();
+  }
+});
+
+/* =====================================
+   ГУСЬ ОТДАЁТ КЛЮЧ
+===================================== */
+
+function giveKey(gx, gy) {
+  phase = 'key';
+
+  counter.textContent = "Гусь запыхался и сдался";
+  hint.textContent = "Нажми на ключ 🔑";
+
+  showGooseMessage("Ладно-ладно... держи ключ! 🔑", 2200);
+
+  /* ключ появляется рядом с гусём, не вылезая за экран */
+  let kx = gx + 105;
+  if (kx > window.innerWidth - 56) kx = gx - 45;
+
+  const ky = gy + 55;
+
+  key.style.left = kx + 'px';
+  key.style.top = ky + 'px';
+
+  /* небольшая пауза, чтобы сработал переход из scale(.2) */
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => key.classList.add('show'));
+  });
+}
+
+/* =====================================
+   КЛЮЧ ОТКРЫВАЕТ КОНВЕРТ
+===================================== */
+
+function onKeyPointerDown(event) {
+  event.preventDefault();
+
+  if (phase !== 'key') return;
+
+  phase = 'unlocking';
+
+  hint.textContent = "";
+  counter.textContent = "Поворачиваем ключ...";
+
+  /* ключ летит к печати */
+  const s = seal.getBoundingClientRect();
+
+  key.style.left = (s.left + s.width / 2 - 23) + 'px';
+  key.style.top = (s.top + s.height / 2 - 23) + 'px';
+
+  setTimeout(() => {
+    key.classList.add('used');
+  }, 900);
+
+  setTimeout(() => {
+    key.classList.remove('show');
+    key.classList.add('gone');
+    openEnvelope();
+  }, 1500);
 }
 
 /* =====================================
@@ -595,22 +748,46 @@ function openByGoose() {
 
 function openEnvelope() {
 
-  if (opened) return;
+  if (phase === 'opened') return;
 
-  opened = true;
+  phase = 'opened';
 
   envelope.classList.add('open');
   letter.classList.add('open');
 
-  counter.textContent = "Письмо доставлено!"
-
-
-;
-  hint.textContent = "Гусь выполнил свою миссию 🪿";
+  counter.textContent = "Письмо доставлено!";
 
   createParticles();
 
   setTimeout(typeLetter, 1200);
+
+  /* когда письмо выехало — конверт, гусь и ключ исчезают */
+  setTimeout(vanish, 2000);
+}
+
+function vanish() {
+
+  envelope.classList.add('gone');
+  goose.classList.add('gone');
+
+  subtitle.classList.add('fade');
+  counter.classList.add('fade');
+  hint.classList.add('fade');
+
+  setTimeout(() => {
+
+    goose.classList.add('removed');
+    key.classList.add('removed');
+
+    envelope
+      .querySelectorAll(':scope > :not(.letter)')
+      .forEach(el => el.classList.add('removed'));
+
+    subtitle.classList.add('removed');
+    counter.classList.add('removed');
+    hint.classList.add('removed');
+
+  }, 1000);
 }
 
 /* =====================================
@@ -636,7 +813,8 @@ function typeLetter() {
   const nodes = [];
   let node;
 
-  while (node = walker.nextNode()) {
+  while ((node = walker.nextNode())) {
+    if (!node.textContent) continue;
     nodes.push([node, node.textContent]);
     node.textContent = "";
   }
@@ -650,6 +828,7 @@ function typeLetter() {
 
       setTimeout(() => {
         letterSign.textContent = signature;
+        letter.scrollTop = letter.scrollHeight;
         createParticles();
       }, 500);
 
@@ -720,14 +899,16 @@ function createParticles() {
    ЗАПУСК
 ===================================== */
 
-goose.addEventListener('pointerdown', gooseTap);
+goose.addEventListener('pointerdown', onGoosePointerDown);
+key.addEventListener('pointerdown', onKeyPointerDown);
 
-/* Гусь самостоятельно гуляет */
+/* Гусь самостоятельно гуляет, пока его ловят */
 
 setInterval(() => {
 
-  if (!opened && !moving && Math.random() > 0.45) {
-    moveGoose();
+  if (phase === 'chase' && !cooling && Math.random() > 0.45) {
+    cooling = true;
+    moveGoose(0, () => { cooling = false; });
   }
 
 }, 3500);
@@ -736,8 +917,9 @@ setInterval(() => {
 
 window.addEventListener('resize', () => {
 
-  if (!opened && !moving) {
-    moveGoose();
+  if (phase === 'chase' && !cooling) {
+    cooling = true;
+    moveGoose(0, () => { cooling = false; });
   }
 
 });
